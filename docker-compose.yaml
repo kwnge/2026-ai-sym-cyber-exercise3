@@ -1,0 +1,89 @@
+services:
+  # Juice shop service
+  juiceshop:
+    image: bkimminich/juice-shop:latest
+    container_name: juice-shop
+    restart: unless-stopped
+    ports:
+      - "80:3000"
+  # MCP Servers
+  nmap:
+    build:
+      context: ./nmap
+      dockerfile: Dockerfile
+    container_name: nmap_mcp_server
+    restart: unless-stopped
+    image: nmap_mcp:latest
+    hostname: nmap_mcp
+    ports:
+      - "8006:8000"
+  curl:
+    build:
+      context: ./curl
+      dockerfile: Dockerfile
+    container_name: curl_mcp_server
+    restart: unless-stopped
+    image: curl_mcp:latest
+    hostname: curl_mcp
+    ports:
+      - "8003:8000"
+  nikto:
+    build:
+      context: ./nikto
+      dockerfile: Dockerfile
+    container_name: nikto_mcp_server
+    restart: unless-stopped
+    image: nikto_mcp:latest
+    hostname: nikto_mcp
+    ports:
+      - "8005:8000"
+  nikto-secondary:
+    build:
+      context: ./nikto
+      dockerfile: Dockerfile
+    container_name: nikto_mcp_server_sec
+    restart: unless-stopped
+    image: nikto_mcp:latest
+    hostname: nikto_mcp_sec
+    ports:
+      - "8015:8000"
+  wget:
+    build:
+      context: ./wget
+      dockerfile: Dockerfile
+    container_name: wget_mcp_server
+    restart: unless-stopped
+    image: wget_mcp:latest
+    hostname: wget_mcp
+    ports:
+      - "8004:8000"
+  gobuster:
+    build:
+      context: ./gobuster
+      dockerfile: Dockerfile
+    container_name: gobuster_mcp_server
+    restart: unless-stopped
+    image: gobuster_mcp:latest
+    hostname: gobuster_mcp
+    ports:
+      - "8001:8000"
+  sqlmap:
+    build:
+      context: ./sqlmap
+      dockerfile: Dockerfile
+    container_name: sqlmap_mcp_server
+    restart: unless-stopped
+    image: sqlmap_mcp:latest
+    hostname: sqlmap_mcp
+    ports:
+      - "8002:8000"
+  sqlmap-secondary:
+    build:
+      context: ./sqlmap
+      dockerfile: Dockerfile
+    container_name: sqlmap_mcp_server_sec
+    restart: unless-stopped
+    image: sqlmap_mcp:latest
+    hostname: sqlmap_mcp_sec
+    ports:
+      - "8012:8000"
