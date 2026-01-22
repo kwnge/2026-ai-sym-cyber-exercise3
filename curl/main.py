@@ -68,7 +68,7 @@ async def curl_cmd(
     if additional_args:
         cmd.extend(additional_args.split())
 
-    cmd.extend(url)
+    cmd.append(url)
 
     print(f"curl command called for for url: {url}")
 

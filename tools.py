@@ -1,4 +1,5 @@
 import asyncio
+import logfire
 from pydantic_ai import RunContext, AgentRunResult
 from deps import Deps, AttackVector, MissionKnowledge, ExploitResults
 
@@ -10,7 +11,7 @@ async def _update_knowledge_from_results(
     knowledge: MissionKnowledge,
     results: list[AgentRunResult]
 ) -> None:
-    
+    logfire.info('Mission knowledge (context) was updated!')
     v: AttackVector
     seen = {(v.type, v.explicit_path) for v in knowledge.identified_vulns}
 
@@ -23,8 +24,6 @@ async def _update_knowledge_from_results(
                     knowledge.attack_surface[v.explicit_path].append(v.type)
 
                 seen.add((v.type, v.explicit_path))
-    
-    print(f"\nUPDATED KNOWLEDGE SCHEMA: {knowledge}")
 
 @agents.mission_agent.tool
 async def run_parallel_recon(ctx: RunContext[Deps]) -> list:
@@ -32,9 +31,8 @@ async def run_parallel_recon(ctx: RunContext[Deps]) -> list:
     Orchestrates initial recon phase against target and updates MissionKnowledge
     with findings.
     """
+    logfire.info(f'Parallel recon tool was called for target: {ctx.deps.target}')
     knowledge = ctx.deps.knowledge
-
-    print(f"---Starting Recon on {ctx.deps.target}---\n")
 
     # Define tasks for async gather
     tasks = [
@@ -45,11 +43,9 @@ async def run_parallel_recon(ctx: RunContext[Deps]) -> list:
     # Run tasks simultaneously
     results = await asyncio.gather(*tasks)
 
-    print(f"RESULTS FROM PARALLEL RECON:\n {results}")
+    logfire.info(f'{len(tasks)} recon tasks were completed!')
 
     await _update_knowledge_from_results(knowledge=knowledge, results=results)
-
-    print(f"\n---Completed Recon on {ctx.deps.target} with {len(tasks)} agent tasks---")
 
     return results
 
@@ -59,7 +55,7 @@ async def run_exploitation(ctx: RunContext[Deps]) -> ExploitResults:
     Performs exploitation on OWASP Juice shop target pulling information on high or critical targets 
     from mission knowledge .
     """
-
+    logfire.info(f'Exploitation agent called!')
     results = await exploit_agent.run(
         f'Perform exploitation of target: {ctx.deps.target}. '
         'Please prioritize SQL injection where possible'
@@ -69,22 +65,20 @@ async def run_exploitation(ctx: RunContext[Deps]) -> ExploitResults:
     with open('exploitation_summary.md', 'w') as f:
         f.write(results.output)
 
-    print(f"RESULTS FROM EXPLOITOITATION: {results.output}")
+    print(f"RESULTS FROM EXPLOITATION: {results.output}")
 
 @agents.mission_agent.tool
 async def run_summary_report(ctx:RunContext[Deps]) -> str:
     """
     Generates summary report on findings into a Markdown style.
     """
-
+    logfire.info('Summary agent called!')
     results = await summary_agent.run(
         f"Generate summary report on latest MissionKnowledge output: {ctx.deps.knowledge}"
         "\n Include Detailed findings review, Advisement on exploitation next steps, "
         "and possible operation security steps to remove exploitation events produced. "
     )
-
-    print(f"\nRESULTS FROM MISSION SUMMARY REPORT: {results.output}")
-
+    
     with open('mission_summary.md', 'w') as f:
         f.write(results.output)
 

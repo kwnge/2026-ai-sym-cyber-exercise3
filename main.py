@@ -9,9 +9,12 @@ from agents import mission_agent
 from tools import run_parallel_recon, run_exploitation, run_summary_report
 
 # Configure Logfire tracing
-logfire.configure()
+logfire.configure(
+    environment="2026 AI Symposium",
+    service_name="E-Commerce DB Exfil - Exercise 3",
+    send_to_logfire="if-token-present"
+)
 logfire.instrument_pydantic_ai()
-
 
 
 async def main():
@@ -21,10 +24,7 @@ async def main():
         goal="Extract 2 high value tables via SQLi",
         target_information="Your target is an OWASP Juice shop instance."
     )
-
-    print("\n---INITIAL STATE---")
-    print(mission_deps.knowledge.model_dump_json(indent=2))
-    
+    logfire.info('Starting mission agent!')
     # Run master agent
     result = await mission_agent.run(
         'Begin the red team engagement! Start with reconnaissance to map the attack surface. '
